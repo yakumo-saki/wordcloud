@@ -1,12 +1,9 @@
 from mastodon import Mastodon
 
-#Mastodon.create_app("D's toot trends App", api_base_url = "https://mstdn-workers.com", to_file = "my_clientcred_workers.txt")
-#mastodon = Mastodon(client_id="my_clientcred_workers.txt",api_base_url = "https://mstdn-workers.com")
-#mastodon.log_in("mail address", "passwd",to_file = "my_usercred_workers.txt")
 mastodon = Mastodon(
-    client_id="my_clientcred_workers.txt",
-    access_token="my_usercred_workers.txt",
-    api_base_url = "https://mstdn-workers.com"
+    client_id="my_client_secret.txt",
+    access_token="my_access_token.txt",
+    api_base_url = "https://yakumo.foundation"
 )
 
 def __str2datetime(s):
@@ -20,22 +17,22 @@ def __str2datetime(s):
 def with_time(time_begin, time_end, db_filename=None):
     if not db_filename:
         return __with_time_fallback(time_begin, time_end)
-    
+
     import datetime
     from datetime import timezone
     import sqlite3
     import pickle
-    
+
     time_range = tuple(
         time.astimezone(timezone.utc).isoformat()
         for time in (time_begin, time_end))
-    
+
     conn = sqlite3.connect(f'file:{db_filename}?mode=ro', uri=True)
     tl = list(
         pickle.loads(r[0])
         for r in conn.execute(
             'SELECT pickle FROM timeline WHERE created_at >= ? AND created_at < ?;',
-            time_range))        
+            time_range))
     conn.close()
     return tl
 

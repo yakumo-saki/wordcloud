@@ -24,14 +24,14 @@ COPY jupyter_notebook_config.py /home/$NB_USER/.jupyter/
 
 EXPOSE 8888
 WORKDIR /work
-COPY my_clientcred_workers.txt my_usercred_workers.txt ./
+COPY my_client_key.txt my_access_token.txt ./
 
 COPY Wordcloud_auto.ipynb \
   timeline.py \
   words.py \
   wordcloud_auto.py \
   username.csv update_userdic.sh ./
-COPY syachiku-chan.overcolored.jpg ./background
+COPY background.jpg ./background
 
 RUN chown $NB_USER:users -R /work/ /home/$NB_USER/
 USER $NB_USER

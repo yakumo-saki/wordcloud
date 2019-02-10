@@ -34,14 +34,14 @@ def get_status_params(
         slow_connection_mode, wordcloud=None, wordcount=dict()):
     wordcloud_img = '/tmp/wordcloud.png'
     status_str_lines = [get_time_str(time_range)]
-    status_str_lines.append("#社畜丼トレンド" if not slow_connection_mode else "#社畜丼トレンド 低速回線モード")
+    status_str_lines.append("#丼トレンド" if not slow_connection_mode else "#丼トレンド 低速回線モード")
     if message:
         status_str_lines.append(message)
     status_str_lines.extend(detail_texts)
     status_str_lines.append(f"{len(statuses)} の投稿を処理しました。")
     if slow_connection_mode and wordcount:
         status_str_lines.extend(get_wordcount_lines(wordcount))
-    
+
     if enough_words:
         status_params = dict(
             media_file=wordcloud_img,
@@ -69,8 +69,12 @@ def is_spam(status):
         any(username.lower().endswith(sfx) for sfx in spam_account_name_suffix)
 
 def is_trend(status):
-    app = status['application']
-    return app['name'] == "D's toot trends App" if app else False
+	# TODO: GlitchだとApplicationがとれない？
+    # Application may be None
+    # https://mastodonpy.readthedocs.io/en/stable/
+    # app = status['application']
+    # return app['name'] == "D's toot trends App" if app else False
+	return False
 
 def filterfalse_with_count(seq, *preds):
     filter_result = []
@@ -90,7 +94,7 @@ def filter_statuses_with_detail_texts(statuses):
     if spam_cnt > 0:
         detail_texts.append(f"スパムとして{spam_cnt}の投稿を除外しました。")
     if self_cnt > 0:
-        detail_texts.append(f"社畜丼トレンド自身の{f'{self_cnt}個の' if self_cnt > 1 else ''}投稿を除外しました。")
+        detail_texts.append(f"丼トレンド自身の{f'{self_cnt}個の' if self_cnt > 1 else ''}投稿を除外しました。")
     return statuses, detail_texts
 
 def convert_wordlist(wordlist):
@@ -118,12 +122,12 @@ if __name__ == '__main__':
                         help="to post status if not interactive-mode else to generate status_params only")
     parser.add_argument('--message', help="additional message")
     args = parser.parse_args()
-    
+
     jst = pytz.timezone('Asia/Tokyo')
     now = datetime.now(jst)
     today = now.date()
     today = jst.localize(datetime(today.year, today.month, today.day))
-    
+
     hour_end = now.timetuple().tm_hour
     if args.since_hour != None:
         hour_pair = [args.since_hour, args.since_hour+1]
@@ -131,23 +135,23 @@ if __name__ == '__main__':
         hour_pair = args.range
     else:
         hour_pair = [hour_end-1, hour_end]
-    
+
     time_range = time_pair(today, *hour_pair)
-    
+
     statuses = timeline.with_time(*time_range, args.db)
     statuses, detail_texts = filter_statuses_with_detail_texts(statuses)
     wordlist = words.wordlist_from_statuses(statuses)
     wordlist = convert_wordlist(wordlist)
-    
+
     enough = enough_words(wordlist)
-    
+
     wordcloud, wordcount = None, None
     if enough:
         #返ってきたリストを結合してワードクラウドにする
         wordcloud, wordcount = words.get_wordcloud_from_wordlist(
             wordlist,
             slow_connection_mode=args.slow)
-    
+
     # インタラクティブモードにするのに即投稿したいわけがないので
     # postオプションが指定されたときはパラメータの生成のみを行う
     if args.post:
